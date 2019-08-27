@@ -28,6 +28,7 @@
 #include <openssl/aes.h>
 #include <openssl/bn.h>
 #include <openssl/err.h>
+#include <openssl/modes.h>
 
 #define AES_KEYSIZE_128       16
 #define MAX_BUFFER_LENGTH    (64*AES_BLOCK_SIZE)
@@ -179,7 +180,11 @@ static int aes_128_ctr (const unsigned char key[AES_KEYSIZE_128],
   }
 
   AES_set_encrypt_key(&key[0], 128, &akey);
-  AES_ctr128_encrypt(in, out, length, &akey, iv, tmp, &num);
+  // AES_ctr128_encrypt(in, out, length, &akey, iv, tmp, &num);
+  // removed this call, replaced with call to CRYPTO_ctr128_encrypt
+  // newer versions of openssl does not have this function
+  // based on https://stackoverflow.com/questions/52369124/
+  CRYPTO_ctr128_encrypt(in, out, length, &akey, iv, tmp, &num, (block128_f)AES_encrypt);
 
   return 0;
 }
